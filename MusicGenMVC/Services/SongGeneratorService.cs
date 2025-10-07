@@ -1,5 +1,4 @@
 ﻿using Bogus;
-using Microsoft.VisualBasic;
 using MusicGenMVC.Models;
 using NAudio.Wave;
 using SkiaSharp;
@@ -19,7 +18,7 @@ namespace MusicGenMVC.Services
             var faker = new Faker(locale: p.Lang == "de-DE" ? "de" : p.Lang == "uk-UA" ? "uk" : "en");
             var words = _locale.Get(p.Lang);
 
-            int total = 24; //Song total
+            int total = 120;
             int startIndex = (page - 1) * pageSize + 1;
             int endIndex = Math.Min(startIndex + pageSize - 1, total);
             var list = new List<SongItem>();
@@ -33,7 +32,8 @@ namespace MusicGenMVC.Services
                 string title = MakeTitle(words, r);
                 string genre = words.Genres[r.Next(words.Genres.Count)];
                 int likes = LikesFromAverage(p.LikesAvg, r);
-                list.Add(new SongItem(i, title, artist, album, genre, likes, isSingle));
+                string coverUrl = $"https://picsum.photos/seed/{p.Seed}-{page}-{i}/600/600";
+                list.Add(new SongItem(i, title, artist, album, genre, likes, isSingle, coverUrl));
             }
             return (list, total);
         }
@@ -58,7 +58,7 @@ namespace MusicGenMVC.Services
 
         public SongDetail BuildDetail(GenerationParams p, int page, int index, SongItem item)
         {
-            string coverUrl = $"/media/cover?lang={Uri.EscapeDataString(p.Lang)}&seed={p.Seed}&page={page}&index={index}";
+            string coverUrl = item.CoverUrl;
             string audioUrl = $"/media/audio?lang={Uri.EscapeDataString(p.Lang)}&seed={p.Seed}&page={page}&index={index}";
             var review = string.Join(" ", _locale.Get(p.Lang).ReviewPhrases.Take(3));
             var lyrics = BuildLyrics(p, page, index, item);
@@ -78,7 +78,6 @@ namespace MusicGenMVC.Services
             return lines;
         }
 
-        // ---------- MEDIA GENERATION ----------
         public byte[] MakeCoverPng(GenerationParams p, int page, int index, string title, string artist)
         {
             var r = _rand.Create(p.Seed, page, index);
@@ -86,19 +85,11 @@ namespace MusicGenMVC.Services
             using var surface = SKSurface.Create(new SKImageInfo(size, size));
             var canvas = surface.Canvas;
             canvas.Clear(new SKColor((byte)r.Next(40, 200), (byte)r.Next(40, 200), (byte)r.Next(40, 200)));
-
-            using var paint = new SKPaint
-            {
-                Color = SKColors.White,
-                IsAntialias = true,
-                TextSize = 40,
-                Typeface = SKTypeface.FromFamilyName("Arial", SKFontStyle.Bold)
-            };
+            using var paint = new SKPaint { Color = SKColors.White, IsAntialias = true, TextSize = 40, Typeface = SKTypeface.FromFamilyName("Arial", SKFontStyle.Bold) };
             var margin = 40f;
             canvas.DrawText(title, margin, size / 2f, paint);
             paint.TextSize = 28;
             canvas.DrawText("by " + artist, margin, size / 2f + 50, paint);
-
             using var img = surface.Snapshot();
             using var data = img.Encode(SKEncodedImageFormat.Png, 90);
             return data.ToArray();

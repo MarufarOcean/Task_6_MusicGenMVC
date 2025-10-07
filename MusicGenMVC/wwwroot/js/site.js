@@ -1,11 +1,7 @@
-﻿// wwwroot/js/site.js
-(function () {
-    // Safe init params (fall back if the view didn't set window.initialParams)
+﻿(function () {
     const defaults = { lang: 'en-US', seed: '1', likes: 3.5 };
     const init = (typeof window !== 'undefined' && window.initialParams) ? window.initialParams : defaults;
-
-    // Single source of truth
-    const state = { ...init, page: 1, mode: 'table' };
+    const state = { ...init, page: 1, mode: 'table', loading: false, totalPages: null };
     window.app = window.app || {};
     window.app.state = state;
 
@@ -14,46 +10,62 @@
     function loadTable(page) {
         state.page = page;
         $.get('/Songs/Table', state, function (html) {
-            $content.html(html);                 // REPLACE content (prevents stacking)
+            $content.html(html);
             attachTableHandlers();
         });
     }
 
-    function loadGallery(page) {
-        state.page = page;
-        $.get('/Songs/Gallery', state, function (html) {
-            $content.html(html);                 // REPLACE content (no append)
+    function renderGallery(html, append) {
+        if (!append) {
+            $content.html(html);
+            const $root = $('#gallery');
+            state.totalPages = parseInt($root.data('total-pages'), 10);
+            state.page = parseInt($root.data('current-page'), 10);
             attachGalleryHandlers();
+        } else {
+            const $tmp = $('<div>').html(html);
+            const $items = $tmp.find('.gal-items').children();
+            $('.gal-items').append($items);
+        }
+    }
+
+    function loadGallery(page, append = false) {
+        state.page = page;
+        state.loading = true;
+        $.get('/Songs/Gallery', state, function (html) {
+            renderGallery(html, append);
+        }).always(function () {
+            state.loading = false;
+            updateGalleryStatus();
         });
     }
 
-    // One-and-only reload function
+    function updateGalleryStatus() {
+        const atEnd = state.totalPages !== null && state.page >= state.totalPages;
+        $('#gal-status').text(atEnd ? '' : 'Loading more on scroll…');
+    }
+
     function reload() {
-        state.page = 1;                        // reset page on any param/mode change
+        state.page = 1;
         if (state.mode === 'table') loadTable(1);
-        else loadGallery(1);
+        else loadGallery(1, false);
     }
 
     function attachTableHandlers() {
-        // pager (kept)
         $('.page-nav').off('click').on('click', function (e) {
             e.preventDefault();
             const p = parseInt($(this).data('page'), 10);
             loadTable(p);
         });
 
-        // NEW: icon button toggler
         $('.toggle-row').off('click').on('click', function (e) {
             e.stopPropagation();
             const idx = $(this).data('index');
             const $detail = $('#detail-' + idx);
             const expanded = !$detail.hasClass('d-none');
-
-            // collapse all, reset all arrows
             $('tr.detail').addClass('d-none');
             $('.toggle-row .arrow').text('▼');
             $('.toggle-row').attr('aria-expanded', 'false');
-
             if (!expanded) {
                 $(this).find('.arrow').text('▲');
                 $(this).attr('aria-expanded', 'true');
@@ -64,7 +76,6 @@
             }
         });
 
-        // Optional: clicking the row also toggles, but delegates to the button to keep arrows in sync
         $('.row-summary').off('click').on('click', function (e) {
             if (!$(e.target).closest('.toggle-row').length) {
                 $(this).find('.toggle-row').trigger('click');
@@ -73,24 +84,23 @@
     }
 
     function attachGalleryHandlers() {
-        // Standard pagination (no infinite scroll)
-        $('.gal-page').off('click').on('click', function (e) {
-            e.preventDefault();
-            const p = parseInt($(this).data('page'), 10);
-            loadGallery(p);
+        $(window).off('scroll.gallery').on('scroll.gallery', function () {
+            if (state.loading) return;
+            const nearBottom = $(window).scrollTop() + $(window).height() >= ($(document).height() - 200);
+            const more = state.totalPages === null || state.page < state.totalPages;
+            if (nearBottom && more) {
+                loadGallery(state.page + 1, true);
+            }
         });
+        updateGalleryStatus();
     }
 
-    // Toolbar bindings (guard + off() before on())
     $(function () {
         if ($('#lang').length) {
             $('#lang').off('change').on('change', function () { state.lang = this.value; reload(); });
         }
         if ($('#seed').length) {
-            $('#seed').off('input').on('input', function () {
-                state.seed = this.value;
-                reload();
-            });
+            $('#seed').off('input').on('input', function () { state.seed = this.value; reload(); });
             $('#randomSeed').off('click').on('click', function () {
                 const rnd = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
                 $('#seed').val(String(rnd));
@@ -102,17 +112,12 @@
             $('#likes').off('input').on('input', function () { state.likes = this.value; reload(); });
         }
         if ($('#modeTable').length) {
-            $('#modeTable').off('change').on('change', function () {
-                if (this.checked) { state.mode = 'table'; reload(); }
-            });
+            $('#modeTable').off('change').on('change', function () { if (this.checked) { state.mode = 'table'; reload(); } });
         }
         if ($('#modeGallery').length) {
-            $('#modeGallery').off('change').on('change', function () {
-                if (this.checked) { state.mode = 'gallery'; reload(); }
-            });
+            $('#modeGallery').off('change').on('change', function () { if (this.checked) { state.mode = 'gallery'; reload(); } });
         }
 
-        // Initial mode: table by default
         loadTable(1);
     });
 })();

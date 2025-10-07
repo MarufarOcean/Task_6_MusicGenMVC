@@ -19,7 +19,7 @@ namespace MusicGenMVC.Controllers
 
 
         [HttpGet]
-        public IActionResult Table(string lang, ulong seed, double likes, int page = 1, int pageSize = 12)
+        public IActionResult Table(string lang, ulong seed, double likes, int page = 1, int pageSize = 40)
         {
             var p = new GenerationParams { Lang = lang, Seed = seed, LikesAvg = likes };
             var (items, total) = _svc.GeneratePage(p, page, pageSize);
@@ -32,7 +32,7 @@ namespace MusicGenMVC.Controllers
 
 
         [HttpGet]
-        public IActionResult Gallery(string lang, ulong seed, double likes, int page = 1, int pageSize = 12)
+        public IActionResult Gallery(string lang, ulong seed, double likes, int page = 1, int pageSize = 40)
         {
             var p = new GenerationParams { Lang = lang, Seed = seed, LikesAvg = likes };
             var (items, total) = _svc.GeneratePage(p, page, pageSize);
@@ -48,10 +48,11 @@ namespace MusicGenMVC.Controllers
         public IActionResult Detail(string lang, ulong seed, double likes, int page, int index)
         {
             var p = new GenerationParams { Lang = lang, Seed = seed, LikesAvg = likes };
-            var (items, _) = _svc.GeneratePage(p, page, 1);
-            var dummy = items.First();
-            var detail = _svc.BuildDetail(p, page, index, dummy);
+            var (items, _) = _svc.GeneratePage(p, page, 12);
+            var item = items.FirstOrDefault(x => x.Index == index) ?? items.First();
+            var detail = _svc.BuildDetail(p, page, index, item);
             return PartialView("_RowDetail", detail);
         }
+
     }
 }

@@ -11,8 +11,7 @@
     @foreach (var s in Model)
     {
         <div class="card song-card" data-index="@s.Index">
-            <img class="card-img-top cover"
-                 src="/media/cover?lang=@p.Lang&seed=@p.Seed&page=@pageNum&index=@s.Index&title=@Uri.EscapeDataString(s.Title)&artist=@Uri.EscapeDataString(s.Artist)" />
+            <img src="@s.CoverUrl" class="card-img-top" alt="@s.Title" loading="lazy" />
             <div class="card-body">
                 <div class="fw-bold">@s.Title</div>
                 <div class="text-muted">@s.Artist</div>
@@ -25,23 +24,3 @@
         </div>
     }
 </div>
-
-@{
-    var last = (int)Math.Ceiling(total / (double)size);
-}
-<nav class="mt-3">
-    <ul class="pagination justify-content-center">
-        <li class="page-item @(pageNum <= 1 ? "disabled" : "")">
-            <a class="page-link gal-page" data-page="@(pageNum - 1)">Previous</a>
-        </li>
-        @for (int i = 1; i <= last; i++)
-        {
-            <li class="page-item @(i == pageNum ? "active" : "")">
-                <a class="page-link gal-page" data-page="@i">@i</a>
-            </li>
-        }
-        <li class="page-item @(pageNum >= last ? "disabled" : "")">
-            <a class="page-link gal-page" data-page="@(pageNum + 1)">Next</a>
-        </li>
-    </ul>
-</nav>
