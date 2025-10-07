@@ -1,0 +1,13 @@
+﻿@model MusicGenMVC.Models.SongDetail
+<div class="row g-3">
+    <div class="col-md-3">
+        <img class="img-fluid" src="@Model.CoverUrl&title=@Uri.EscapeDataString(Model.Title)&artist=@Uri.EscapeDataString(Model.Artist)" alt="cover" />
+    </div>
+    <div class="col-md-9">
+        <h5>@Model.Title <small class="text-muted">by @Model.Artist</small></h5>
+        <div class="mb-2">Album: <strong>@Model.Album</strong> • Genre: <strong>@Model.Genre</strong> • Likes: <strong>@Model.Likes</strong></div>
+        <audio controls src="@Model.AudioUrl"></audio>
+        <div class="lyrics mt-2" data-lyrics='@System.Text.Json.JsonSerializer.Serialize(Model.Lyrics)'></div>
+        <p class="mt-2">@Model.ReviewText</p>
+    </div>
+</div>

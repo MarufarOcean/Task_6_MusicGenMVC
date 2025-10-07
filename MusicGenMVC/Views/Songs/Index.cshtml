@@ -1,0 +1,37 @@
+﻿@using MusicGenMVC.Models
+@{
+var p = (GenerationParams)ViewBag.Params;
+}
+@section Scripts{}
+<div class="toolbar d-flex gap-3 align-items-center">
+<div>
+<label class="form-label">Language</label>
+<select id="lang" class="form-select form-select-sm">
+    <option value="en-US" selected="@(p.Lang == "en-US" ? "selected" : null)">English (US)</option>
+    <option value="de-DE" selected="@(p.Lang == "de-DE" ? "selected" : null)">Deutsch (DE)</option>
+    <option value="uk-UA" selected="@(p.Lang == "uk-UA" ? "selected" : null)">Українська (UA)</option>
+</select>
+</div>
+<div>
+<label class="form-label">Seed</label>
+<div class="input-group input-group-sm">
+<input id="seed" class="form-control" value="@p.Seed" />
+<button id="randomSeed" class="btn btn-outline-secondary">🎲</button>
+</div>
+</div>
+<div class="flex-fill" style="max-width:420px">
+<label class="form-label">Likes</label>
+<input id="likes" type="range" min="0" max="10" step="0.1" value="@p.LikesAvg" class="form-range" />
+</div>
+<div class="ms-auto btn-group btn-group-sm" role="group">
+<input type="radio" class="btn-check" name="viewmode" id="modeTable" autocomplete="off" checked>
+<label class="btn btn-outline-primary" for="modeTable">Table</label>
+<input type="radio" class="btn-check" name="viewmode" id="modeGallery" autocomplete="off">
+<label class="btn btn-outline-primary" for="modeGallery">Gallery</label>
+</div>
+</div>
+<div id="content" class="mt-3"></div>
+
+<script>
+    window.initialParams = { lang: '@p.Lang', seed: '@p.Seed', likes: @p.LikesAvg };
+</script>

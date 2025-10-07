@@ -1,0 +1,9 @@
+{
+  "FirstNames": [ "Elton", "Ella", "Albert", "Mimi", "Frank", "Aaron", "Amy", "John" ],
+  "LastNames": [ "Smith", "Fitz", "Stone", "Johnson", "Tap", "Knuth", "Zappa", "Aaranson" ],
+  "BandWords": [ "Lonely Hearts", "Silver Line", "Paper Tigers", "Magic Circuits", "Spinal" ],
+  "Nouns": [ "Circuits", "Ponies", "Dreams", "Office Supplies", "Whisper", "Carpet", "Sun" ],
+  "Adjectives": [ "Fast", "Huge", "Golden", "Dark", "Electric", "Happy" ],
+  "Genres": [ "Rock'n'Roll", "House", "Folk", "Electronic", "Heavy Metal", "Country" ],
+  "ReviewPhrases": [ "A catchy chorus with bright synths.", "Groovy bass-line throughout.", "A confident vocal performance.", "Crisp drums and smooth vibe." ]
+}

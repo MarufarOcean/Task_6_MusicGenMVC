@@ -1,0 +1,9 @@
+{
+  "FirstNames": [ "Anna", "Felix", "Lena", "Karl", "Uwe", "Marek" ],
+  "LastNames": [ "Müller", "Schmidt", "Fischer", "Weber", "Wagner" ],
+  "BandWords": [ "Goldene Zeiten", "Silberregen", "Neon Sterne", "Kalte Welle" ],
+  "Nouns": [ "Träume", "Pferde", "Fluss", "Maschinen", "Wolken" ],
+  "Adjectives": [ "Schnelle", "Große", "Dunkle", "Bunte", "Elektrische" ],
+  "Genres": [ "Rock", "Haus", "Volkslied", "Elektronisch", "Schweres Metall" ],
+  "ReviewPhrases": [ "Ein packender Refrain.", "Groove im Bass.", "Selbstbewusster Gesang.", "Klarer Beat und Gefühl." ]
+}
