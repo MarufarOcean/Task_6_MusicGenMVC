@@ -22,7 +22,7 @@
         @foreach (var s in Model)
         {
             <tr class="row-summary">
-                <td style="width:56px"><img src="@s.CoverUrl" alt="" style="width:48px;height:48px;object-fit:cover;border-radius:6px" /></td>
+                <td style="width:56px"><img src="@Url.Action("Proxy", "Media", new { url = s.CoverUrl })" alt="@s.Title" style="width:48px;height:48px;object-fit:cover;border-radius:6p" /></td>
                 <td>@s.Title</td>
                 <td>@s.Artist</td>
                 <td>@s.Album</td>

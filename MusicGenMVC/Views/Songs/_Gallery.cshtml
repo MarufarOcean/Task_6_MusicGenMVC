@@ -11,7 +11,7 @@
     @foreach (var s in Model)
     {
         <div class="card song-card" data-index="@s.Index">
-            <img src="@s.CoverUrl" class="card-img-top" alt="@s.Title" loading="lazy" />
+            <img src="@Url.Action("Proxy","Media", new { url = s.CoverUrl })" alt="@s.Title" />
             <div class="card-body">
                 <div class="fw-bold">@s.Title</div>
                 <div class="text-muted">@s.Artist</div>

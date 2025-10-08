@@ -1,7 +1,10 @@
 ﻿@model MusicGenMVC.Models.SongDetail
+@{
+    var img = Url.Action("Proxy", "Media", new { url = Model.CoverUrl });
+}
 <div class="row">
     <div class="col-3">
-        <img src="@Model.CoverUrl" alt="@Model.Title" class="img-fluid rounded" />
+        <img src="@img" class="img-fluid rounded" />
     </div>
     <div class="col">
         <h5>@Model.Title</h5>

@@ -2,6 +2,7 @@
 using MusicGenMVC.Models;
 using NAudio.Wave;
 using SkiaSharp;
+
 namespace MusicGenMVC.Services
 {
     public sealed class SongGeneratorService
@@ -12,11 +13,14 @@ namespace MusicGenMVC.Services
         public SongGeneratorService(LocaleStore locale, SeededRandomFactory rand, IWebHostEnvironment env)
         { _locale = locale; _rand = rand; _env = env; }
 
+        private Faker CreateFaker(string lang) => new Faker(locale: lang == "de-DE" ? "de" : lang == "uk-UA" ? "uk" : "en");
+        private LocaleData GetLocale(string lang) => _locale.Get(lang);
+        private string CoverUrl(string lang, ulong seed, int page, int index) => $"https://picsum.photos/seed/{seed}-{page}-{index}/600/600";
+
         public (IEnumerable<SongItem> items, int total) GeneratePage(GenerationParams p, int page, int pageSize)
         {
-            var rng = _rand.Create(p.Seed, page);
-            var faker = new Faker(locale: p.Lang == "de-DE" ? "de" : p.Lang == "uk-UA" ? "uk" : "en");
-            var words = _locale.Get(p.Lang);
+            var faker = CreateFaker(p.Lang);
+            var words = GetLocale(p.Lang);
 
             int total = 120;
             int startIndex = (page - 1) * pageSize + 1;
@@ -32,10 +36,26 @@ namespace MusicGenMVC.Services
                 string title = MakeTitle(words, r);
                 string genre = words.Genres[r.Next(words.Genres.Count)];
                 int likes = LikesFromAverage(p.LikesAvg, r);
-                string coverUrl = $"https://picsum.photos/seed/{p.Seed}-{page}-{i}/600/600";
+                string coverUrl = CoverUrl(p.Lang, p.Seed, page, i);
                 list.Add(new SongItem(i, title, artist, album, genre, likes, isSingle, coverUrl));
             }
             return (list, total);
+        }
+
+        public SongItem GenerateItem(GenerationParams p, int page, int index)
+        {
+            var faker = CreateFaker(p.Lang);
+            var words = GetLocale(p.Lang);
+            var r = _rand.Create(p.Seed, page, index);
+            bool isBand = r.NextDouble() < 0.6;
+            string artist = isBand ? MakeBand(words, r) : MakePerson(words, r, faker);
+            bool isSingle = r.NextDouble() < 0.3;
+            string album = isSingle ? "Single" : MakeAlbum(words, r);
+            string title = MakeTitle(words, r);
+            string genre = words.Genres[r.Next(words.Genres.Count)];
+            int likes = LikesFromAverage(p.LikesAvg, r);
+            string coverUrl = CoverUrl(p.Lang, p.Seed, page, index);
+            return new SongItem(index, title, artist, album, genre, likes, isSingle, coverUrl);
         }
 
         private static int LikesFromAverage(double avg, Random r)
@@ -85,11 +105,13 @@ namespace MusicGenMVC.Services
             using var surface = SKSurface.Create(new SKImageInfo(size, size));
             var canvas = surface.Canvas;
             canvas.Clear(new SKColor((byte)r.Next(40, 200), (byte)r.Next(40, 200), (byte)r.Next(40, 200)));
-            using var paint = new SKPaint { Color = SKColors.White, IsAntialias = true, TextSize = 40, Typeface = SKTypeface.FromFamilyName("Arial", SKFontStyle.Bold) };
+
+            using var paint = new SKPaint { Color = SKColors.White, IsAntialias = true, TextSize = 40, Typeface = SKTypeface.Default };
             var margin = 40f;
             canvas.DrawText(title, margin, size / 2f, paint);
             paint.TextSize = 28;
             canvas.DrawText("by " + artist, margin, size / 2f + 50, paint);
+
             using var img = surface.Snapshot();
             using var data = img.Encode(SKEncodedImageFormat.Png, 90);
             return data.ToArray();

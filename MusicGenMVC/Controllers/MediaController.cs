@@ -24,5 +24,24 @@ namespace MusicGenMVC.Controllers
             var bytes = _svc.MakeAudioWav(new GenerationParams { Lang = lang, Seed = seed }, page, index);
             return File(bytes, "audio/wav");
         }
+
+        [HttpGet("/media/proxy")]
+        public async Task<IActionResult> Proxy(string url)
+        {
+            if (string.IsNullOrWhiteSpace(url)) return BadRequest();
+            if (!Uri.TryCreate(url, UriKind.Absolute, out var u)) return BadRequest();
+            if (!(u.Host.EndsWith("picsum.photos", StringComparison.OrdinalIgnoreCase) ||
+                  u.Host.EndsWith("i.picsum.photos", StringComparison.OrdinalIgnoreCase) ||
+                  u.Host.EndsWith("fastly.picsum.photos", StringComparison.OrdinalIgnoreCase)))
+                return Forbid();
+
+            using var http = new HttpClient();
+            var resp = await http.GetAsync(u, HttpCompletionOption.ResponseHeadersRead);
+            if (!resp.IsSuccessStatusCode) return StatusCode((int)resp.StatusCode);
+
+            var contentType = resp.Content.Headers.ContentType?.ToString() ?? "image/jpeg";
+            var bytes = await resp.Content.ReadAsByteArrayAsync();
+            return File(bytes, contentType);
+        }
     }
 }
